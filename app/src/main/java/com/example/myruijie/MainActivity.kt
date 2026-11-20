@@ -256,6 +256,7 @@ private val menuIcons = listOf(
 )
 
 @Composable
+@OptIn(ExperimentalMaterial3Api::class)
 private fun MainDashboard(
     selectedTab: Int,
     onSelectTab: (Int) -> Unit,
