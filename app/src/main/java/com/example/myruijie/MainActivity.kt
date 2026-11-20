@@ -40,6 +40,7 @@ private val Panel = Color(0xFF101A2B)
 private val Blue = Color(0xFF35C8FF)
 private val WhiteText = Color(0xFFEAF7FF)
 
+@OptIn(ExperimentalMaterial3Api::class)
 class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
