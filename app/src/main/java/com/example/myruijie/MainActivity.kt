@@ -9,7 +9,12 @@ import android.net.Uri
 import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
+import androidx.compose.foundation.Image
+import androidx.compose.foundation.background
+import androidx.compose.foundation.border
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.*
@@ -17,11 +22,22 @@ import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
+import androidx.compose.ui.graphics.Brush
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
+import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import java.net.Inet4Address
+
+private val Black = Color(0xFF070B14)
+private val Panel = Color(0xFF101A2B)
+private val NeonBlue = Color(0xFF35C8FF)
+private val SoftBlue = Color(0xFF1676B8)
+private val WhiteText = Color(0xFFEAF7FF)
 
 class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -36,8 +52,9 @@ private fun findDefaultGateway(context: Context): String? {
     val caps = cm.getNetworkCapabilities(network) ?: return null
     if (!caps.hasTransport(NetworkCapabilities.TRANSPORT_WIFI)) return null
     val links: LinkProperties = cm.getLinkProperties(network) ?: return null
-    return links.routes.firstOrNull { it.isDefaultRoute && it.gateway is Inet4Address }
-        ?.gateway?.hostAddress
+    return links.routes.firstOrNull {
+        it.isDefaultRoute && it.gateway is Inet4Address
+    }?.gateway?.hostAddress
 }
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -45,110 +62,275 @@ private fun findDefaultGateway(context: Context): String? {
 fun MyRuijieAutoDetectApp() {
     val context = LocalContext.current
     var gateway by remember { mutableStateOf<String?>(null) }
-    var status by remember { mutableStateOf("Tap Auto Detect to find your Wi-Fi router.") }
-    var scanned by remember { mutableStateOf(false) }
+    var status by remember { mutableStateOf("Router ကိုရှာဖွေရန် Auto Detect ကိုနှိပ်ပါ။") }
+    var selectedFeature by remember { mutableStateOf<String?>(null) }
 
-    MaterialTheme(colorScheme = lightColorScheme(
-        primary = androidx.compose.ui.graphics.Color(0xFF176B55),
-        secondary = androidx.compose.ui.graphics.Color(0xFF4C7C70)
-    )) {
-        Scaffold(topBar = {
-            TopAppBar(title = {
-                Column {
-                    Text("My Ruijie", fontWeight = FontWeight.Bold)
-                    Text("Automatic Router Discovery", style = MaterialTheme.typography.labelSmall)
-                }
-            })
-        }) { padding ->
+    MaterialTheme(
+        colorScheme = darkColorScheme(
+            primary = NeonBlue,
+            secondary = SoftBlue,
+            background = Black,
+            surface = Panel,
+            onBackground = WhiteText,
+            onSurface = WhiteText
+        )
+    ) {
+        Scaffold(
+            containerColor = Black,
+            topBar = {
+                TopAppBar(
+                    title = {
+                        Column {
+                            Text(
+                                "AKAR MOE",
+                                color = NeonBlue,
+                                fontWeight = FontWeight.Black
+                            )
+                            Text(
+                                "MY RUIJIE CONTROL",
+                                color = WhiteText.copy(alpha = 0.65f),
+                                style = MaterialTheme.typography.labelSmall
+                            )
+                        }
+                    },
+                    navigationIcon = {
+                        Image(
+                            painter = painterResource(id = R.mipmap.ic_launcher),
+                            contentDescription = "AKAR MOE Hacker Logo",
+                            modifier = Modifier
+                                .padding(start = 12.dp, end = 8.dp)
+                                .size(48.dp)
+                                .clip(CircleShape)
+                                .border(2.dp, NeonBlue, CircleShape),
+                            contentScale = ContentScale.Crop
+                        )
+                    },
+                    colors = TopAppBarDefaults.topAppBarColors(
+                        containerColor = Black
+                    )
+                )
+            }
+        ) { padding ->
             Column(
-                Modifier.fillMaxSize().padding(padding).padding(16.dp),
-                verticalArrangement = Arrangement.spacedBy(14.dp)
+                modifier = Modifier
+                    .fillMaxSize()
+                    .padding(padding)
+                    .background(
+                        Brush.verticalGradient(
+                            listOf(Black, Color(0xFF0B1830), Black)
+                        )
+                    )
+                    .padding(16.dp),
+                verticalArrangement = Arrangement.spacedBy(16.dp)
             ) {
                 Card(
-                    colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.primaryContainer),
-                    shape = RoundedCornerShape(20.dp)
+                    modifier = Modifier.fillMaxWidth(),
+                    shape = RoundedCornerShape(22.dp),
+                    colors = CardDefaults.cardColors(containerColor = Panel),
+                    border = androidx.compose.foundation.BorderStroke(1.dp, NeonBlue.copy(alpha = 0.65f))
                 ) {
-                    Column(Modifier.fillMaxWidth().padding(18.dp), verticalArrangement = Arrangement.spacedBy(10.dp)) {
+                    Column(
+                        modifier = Modifier.padding(18.dp),
+                        verticalArrangement = Arrangement.spacedBy(12.dp)
+                    ) {
                         Row(verticalAlignment = Alignment.CenterVertically) {
-                            Icon(Icons.Default.Router, contentDescription = null)
-                            Spacer(Modifier.width(8.dp))
-                            Text("ROUTER DISCOVERY", style = MaterialTheme.typography.labelLarge)
+                            Icon(Icons.Default.Router, null, tint = NeonBlue)
+                            Spacer(Modifier.width(9.dp))
+                            Text(
+                                "ROUTER DISCOVERY",
+                                color = NeonBlue,
+                                fontWeight = FontWeight.Bold
+                            )
                             Spacer(Modifier.weight(1f))
-                            AssistChip(onClick = {}, label = { Text("Auto") })
+                            Text(
+                                "AUTO",
+                                color = NeonBlue,
+                                style = MaterialTheme.typography.labelSmall
+                            )
                         }
+
                         Text(
-                            gateway ?: "Router not detected yet",
-                            style = MaterialTheme.typography.headlineSmall,
+                            gateway ?: "ROUTER NOT DETECTED",
+                            color = WhiteText,
+                            style = MaterialTheme.typography.titleLarge,
                             fontWeight = FontWeight.Bold
                         )
-                        Text(status, style = MaterialTheme.typography.bodyMedium)
+
+                        Text(
+                            status,
+                            color = WhiteText.copy(alpha = 0.7f),
+                            style = MaterialTheme.typography.bodySmall
+                        )
+
                         Button(
                             onClick = {
-                                scanned = true
                                 gateway = findDefaultGateway(context)
                                 status = if (gateway != null) {
-                                    "Default Wi-Fi gateway found. It may be your Ruijie router."
+                                    "Wi-Fi Gateway တွေ့ပါပြီ။ Ruijie Router ဖြစ်နိုင်ပါတယ်။"
                                 } else {
-                                    "No Wi-Fi gateway found. Connect your phone to the Ruijie Wi-Fi and try again."
+                                    "Wi-Fi ချိတ်ဆက်ပြီးမှ ထပ်စမ်းကြည့်ပါ။"
                                 }
                             },
-                            modifier = Modifier.fillMaxWidth()
+                            modifier = Modifier.fillMaxWidth(),
+                            colors = ButtonDefaults.buttonColors(
+                                containerColor = SoftBlue,
+                                contentColor = Color.White
+                            ),
+                            shape = RoundedCornerShape(12.dp)
                         ) {
-                            Icon(Icons.Default.Search, contentDescription = null)
+                            Icon(Icons.Default.Search, null)
                             Spacer(Modifier.width(8.dp))
-                            Text("Auto Detect Router")
+                            Text("AUTO DETECT ROUTER")
                         }
-                        Button(
+
+                        OutlinedButton(
                             onClick = {
                                 val ip = gateway
                                 if (ip != null) {
                                     try {
-                                        context.startActivity(Intent(Intent.ACTION_VIEW, Uri.parse("http://$ip")))
-                                        status = "Router admin page opened in your browser."
+                                        context.startActivity(
+                                            Intent(Intent.ACTION_VIEW, Uri.parse("http://$ip"))
+                                        )
+                                        status = "Router Admin Page ကို ဖွင့်လိုက်ပါပြီ။"
                                     } catch (_: Exception) {
-                                        status = "Could not open the router page."
+                                        status = "Browser ဖွင့်မရပါ။"
                                     }
                                 } else {
-                                    status = "Detect the router first."
+                                    status = "အရင်ဆုံး Router ကို Detect လုပ်ပါ။"
                                 }
                             },
                             enabled = gateway != null,
                             modifier = Modifier.fillMaxWidth(),
-                            colors = ButtonDefaults.buttonColors(containerColor = MaterialTheme.colorScheme.secondary)
+                            border = androidx.compose.foundation.BorderStroke(1.dp, NeonBlue),
+                            shape = RoundedCornerShape(12.dp)
                         ) {
-                            Icon(Icons.Default.OpenInBrowser, contentDescription = null)
+                            Icon(Icons.Default.OpenInBrowser, null, tint = NeonBlue)
                             Spacer(Modifier.width(8.dp))
-                            Text("Open Router Admin Page")
+                            Text("OPEN ROUTER ADMIN", color = NeonBlue)
                         }
                     }
                 }
 
-                Text("MANAGEMENT FEATURES", style = MaterialTheme.typography.labelLarge, color = MaterialTheme.colorScheme.secondary)
-                FeatureRow("Device Manager", Icons.Default.Devices, "Connected device list — integration pending")
-                FeatureRow("Wi-Fi Settings", Icons.Default.Wifi, "Change network name and password — integration pending")
-                FeatureRow("Speed & Access Control", Icons.Default.Speed, "Speed limits and block/unblock — integration pending")
-                FeatureRow("QR Connect & Monitor", Icons.Default.QrCode2, "Wi-Fi QR and traffic monitor — integration pending")
+                Text(
+                    "SYSTEM FEATURES",
+                    color = NeonBlue,
+                    fontWeight = FontWeight.Bold
+                )
+
+                FeatureRow(
+                    "DEVICE MANAGER",
+                    Icons.Default.Devices,
+                    "ချိတ်ဆက်ထားသော Device များ",
+                    { selectedFeature = "DEVICE MANAGER" }
+                )
+                FeatureRow(
+                    "ONLINE / OFFLINE",
+                    Icons.Default.Wifi,
+                    "Device အခြေအနေ စစ်ဆေးရန်",
+                    { selectedFeature = "ONLINE / OFFLINE" }
+                )
+                FeatureRow(
+                    "BLOCK / UNBLOCK",
+                    Icons.Default.Security,
+                    "Device အသုံးပြုခွင့် ထိန်းချုပ်ရန်",
+                    { selectedFeature = "BLOCK / UNBLOCK" }
+                )
+                FeatureRow(
+                    "SPEED MONITOR",
+                    Icons.Default.Speed,
+                    "Internet Speed စောင့်ကြည့်ရန်",
+                    { selectedFeature = "SPEED MONITOR" }
+                )
+                FeatureRow(
+                    "SPEED LIMIT",
+                    Icons.Default.Tune,
+                    "အသုံးပြုနှုန်း ကန့်သတ်ရန်",
+                    { selectedFeature = "SPEED LIMIT" }
+                )
+                FeatureRow(
+                    "WI-FI QR CONNECT",
+                    Icons.Default.QrCode2,
+                    "Wi-Fi QR Code",
+                    { selectedFeature = "WI-FI QR CONNECT" }
+                )
 
                 Text(
-                    "Note: Auto Detect finds the active Wi-Fi network's default gateway. It cannot guarantee that the gateway is Ruijie, identify every model, or bypass router login. Live management needs a supported, authorized Ruijie interface.",
-                    style = MaterialTheme.typography.bodySmall,
-                    color = MaterialTheme.colorScheme.onSurfaceVariant
+                    "SYSTEM NOTE: အမှန်တကယ် Router ထိန်းချုပ်ရန် Router ဖွင့်ထားပြီး ခွင့်ပြုထားသော Ruijie API ချိတ်ဆက်မှု လိုအပ်ပါသည်။",
+                    color = WhiteText.copy(alpha = 0.55f),
+                    style = MaterialTheme.typography.labelSmall
                 )
             }
+        }
+
+        if (selectedFeature != null) {
+            AlertDialog(
+                onDismissRequest = { selectedFeature = null },
+                containerColor = Panel,
+                title = {
+                    Text(selectedFeature ?: "", color = NeonBlue)
+                },
+                text = {
+                    Text(
+                        "ဒီလုပ်ဆောင်ချက်ကို အမှန်တကယ် အသုံးပြုနိုင်ရန် Ruijie Router နှင့် API ချိတ်ဆက်မှု လိုအပ်ပါသေးသည်။",
+                        color = WhiteText
+                    )
+                },
+                confirmButton = {
+                    TextButton(onClick = { selectedFeature = null }) {
+                        Text("OK", color = NeonBlue)
+                    }
+                }
+            )
         }
     }
 }
 
 @Composable
-fun FeatureRow(title: String, icon: ImageVector, detail: String) {
-    OutlinedCard(shape = RoundedCornerShape(14.dp)) {
-        Row(Modifier.fillMaxWidth().padding(14.dp), verticalAlignment = Alignment.CenterVertically) {
-            Icon(icon, contentDescription = null, tint = MaterialTheme.colorScheme.primary)
-            Spacer(Modifier.width(12.dp))
-            Column {
-                Text(title, fontWeight = FontWeight.SemiBold)
-                Text(detail, style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
+fun FeatureRow(
+    title: String,
+    icon: ImageVector,
+    detail: String,
+    onClick: () -> Unit
+) {
+    Card(
+        modifier = Modifier
+            .fillMaxWidth()
+            .clickable { onClick() },
+        shape = RoundedCornerShape(15.dp),
+        colors = CardDefaults.cardColors(containerColor = Panel),
+        border = androidx.compose.foundation.BorderStroke(
+            1.dp,
+            NeonBlue.copy(alpha = 0.35f)
+        )
+    ) {
+        Row(
+            modifier = Modifier.padding(15.dp),
+            verticalAlignment = Alignment.CenterVertically
+        ) {
+            Icon(
+                icon,
+                contentDescription = null,
+                tint = NeonBlue,
+                modifier = Modifier.size(27.dp)
+            )
+            Spacer(Modifier.width(14.dp))
+            Column(Modifier.weight(1f)) {
+                Text(
+                    title,
+                    color = WhiteText,
+                    fontWeight = FontWeight.Bold
+                )
+                Text(
+                    detail,
+                    color = WhiteText.copy(alpha = 0.55f),
+                    style = MaterialTheme.typography.bodySmall
+                )
             }
+            Text(
+                "API",
+                color = NeonBlue,
+                style = MaterialTheme.typography.labelSmall
+            )
         }
     }
 }
