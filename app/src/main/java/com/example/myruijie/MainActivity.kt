@@ -271,12 +271,17 @@ private fun MainDashboard(
             }
         }
     ) { padding ->
-        Column(
-            Modifier.fillMaxSize().padding(padding)
-                .background(Brush.verticalGradient(listOf(Black, Color(0xFF0B1830))))
-                .verticalScroll(rememberScrollState()).padding(16.dp),
-            verticalArrangement = Arrangement.spacedBy(14.dp)
+        Box(
+            modifier = Modifier.fillMaxSize().padding(padding)
         ) {
+            HackerCodeRain()
+
+            Column(
+                Modifier.fillMaxSize()
+                    .background(Color(0xCC070B14))
+                    .verticalScroll(rememberScrollState()).padding(16.dp),
+                verticalArrangement = Arrangement.spacedBy(14.dp)
+            ) {
             when (selectedTab) {
                 0 -> {
                     Text("WELCOME TO AKAR MOE", color = Blue,
@@ -340,6 +345,7 @@ private fun MainDashboard(
                 color = WhiteText.copy(alpha = 0.6f),
                 style = MaterialTheme.typography.labelSmall
             )
+            }
         }
     }
 }
