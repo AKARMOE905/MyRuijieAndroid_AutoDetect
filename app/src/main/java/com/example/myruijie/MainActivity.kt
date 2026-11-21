@@ -95,7 +95,7 @@ fun MyRuijieAutoDetectApp() {
                 email = email,
                 routerStatus = routerStatus,
                 onDetect = {
-                    routerStatus = "Ruijie Cloud API ချိတ်ဆက်မှု မရသေးပါ။"
+                    routerStatus = "DEMO MODE — API မချိတ်ရသေးပါ။\nဥပမာ Gateway: RG-EG Series\nStatus: Sample Data Only"
                 },
                 onTelegram = { openTelegram(context) },
                 onLogout = {
