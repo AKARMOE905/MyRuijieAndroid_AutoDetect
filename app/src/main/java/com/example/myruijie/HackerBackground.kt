@@ -85,7 +85,7 @@ fun HackerCodeRain() {
     Canvas(Modifier.fillMaxSize()) {
         val paint = android.graphics.Paint().apply {
             color = android.graphics.Color.rgb(0, 255, 65)
-            textSize = 19f
+            textSize = 32f
             alpha = 255
             typeface = android.graphics.Typeface.create(
                 android.graphics.Typeface.MONOSPACE,
@@ -107,7 +107,7 @@ fun HackerCodeRain() {
         }
 
         val canvas = drawContext.canvas.nativeCanvas
-        val lineHeight = 29f
+        val lineHeight = 44f
         val totalHeight = codeLines.size * lineHeight
         val scroll = progress.value * totalHeight
 
