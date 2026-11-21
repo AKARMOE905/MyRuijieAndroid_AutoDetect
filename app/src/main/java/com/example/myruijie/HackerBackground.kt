@@ -107,21 +107,49 @@ fun HackerCodeRain() {
         }
 
         val canvas = drawContext.canvas.nativeCanvas
+        val columnCount = 2
+        val columnWidth = size.width / columnCount
         val lineHeight = 44f
         val totalHeight = codeLines.size * lineHeight
         val scroll = progress.value * totalHeight
 
-        codeLines.forEachIndexed { index, line ->
-            val y = ((index * lineHeight + scroll) % totalHeight)
+        repeat(columnCount) { column ->
+            val left = column * columnWidth
 
-            if (y > 0f && y < size.height + lineHeight) {
-                canvas.drawText(
-                    line,
-                    8f,
-                    y,
-                    if (index % 9 == 0) bluePaint else paint
-                )
+            canvas.save()
+            canvas.clipRect(
+                left, 0f,
+                left + columnWidth, size.height
+            )
+
+            codeLines.forEachIndexed { index, line ->
+                val y = (
+                    index * lineHeight +
+                    scroll +
+                    column * totalHeight / 2f
+                ) % totalHeight
+
+                if (y > 0f && y < size.height + lineHeight) {
+                    val availableWidth = columnWidth - 16f
+                    var visibleText = line
+
+                    while (
+                        visibleText.isNotEmpty() &&
+                        paint.measureText(visibleText) > availableWidth
+                    ) {
+                        visibleText = visibleText.dropLast(1)
+                    }
+
+                    canvas.drawText(
+                        visibleText,
+                        left + 8f,
+                        y,
+                        if (index % 9 == 0) bluePaint else paint
+                    )
+                }
             }
+
+            canvas.restore()
         }
     }
 }
