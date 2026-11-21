@@ -2,9 +2,6 @@ package com.example.myruijie
 
 import android.content.Context
 import android.content.Intent
-import android.net.ConnectivityManager
-import android.net.LinkProperties
-import android.net.NetworkCapabilities
 import android.net.Uri
 import android.os.Bundle
 import androidx.activity.ComponentActivity
@@ -33,7 +30,6 @@ import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.PasswordVisualTransformation
 import androidx.compose.ui.unit.dp
-import java.net.Inet4Address
 
 private val Black = Color(0xFF070B14)
 private val Panel = Color(0xFF101A2B)
@@ -46,17 +42,6 @@ class MainActivity : ComponentActivity() {
         super.onCreate(savedInstanceState)
         setContent { MyRuijieAutoDetectApp() }
     }
-}
-
-private fun findDefaultGateway(context: Context): String? {
-    val cm = context.getSystemService(Context.CONNECTIVITY_SERVICE) as ConnectivityManager
-    val network = cm.activeNetwork ?: return null
-    val caps = cm.getNetworkCapabilities(network) ?: return null
-    if (!caps.hasTransport(NetworkCapabilities.TRANSPORT_WIFI)) return null
-    val links: LinkProperties = cm.getLinkProperties(network) ?: return null
-    return links.routes.firstOrNull {
-        it.isDefaultRoute && it.gateway is Inet4Address
-    }?.gateway?.hostAddress
 }
 
 private fun openTelegram(context: Context) {
@@ -75,7 +60,6 @@ fun MyRuijieAutoDetectApp() {
     var password by remember { mutableStateOf("") }
     var loginMessage by remember { mutableStateOf("") }
     var selectedTab by remember { mutableIntStateOf(0) }
-    var gateway by remember { mutableStateOf<String?>(null) }
     var routerStatus by remember { mutableStateOf("Router မရှာရသေးပါ။") }
 
     MaterialTheme(
@@ -109,24 +93,9 @@ fun MyRuijieAutoDetectApp() {
                 selectedTab = selectedTab,
                 onSelectTab = { selectedTab = it },
                 email = email,
-                gateway = gateway,
                 routerStatus = routerStatus,
                 onDetect = {
-                    gateway = findDefaultGateway(context)
-                    routerStatus = if (gateway != null) {
-                        "Wi-Fi Gateway တွေ့ပါပြီ။ Ruijie ဖြစ်ကြောင်း အတည်မပြုရသေးပါ။"
-                    } else {
-                        "Wi-Fi ချိတ်ဆက်ပြီးမှ ထပ်စမ်းပါ။"
-                    }
-                },
-                onOpenRouter = {
-                    gateway?.let {
-                        try {
-                            context.startActivity(
-                                Intent(Intent.ACTION_VIEW, Uri.parse("http://$it"))
-                            )
-                        } catch (_: Exception) { }
-                    }
+                    routerStatus = "Ruijie Cloud API ချိတ်ဆက်မှု မရသေးပါ။"
                 },
                 onTelegram = { openTelegram(context) },
                 onLogout = {
@@ -261,10 +230,8 @@ private fun MainDashboard(
     selectedTab: Int,
     onSelectTab: (Int) -> Unit,
     email: String,
-    gateway: String?,
     routerStatus: String,
     onDetect: () -> Unit,
-    onOpenRouter: () -> Unit,
     onTelegram: () -> Unit,
     onLogout: () -> Unit
 ) {
@@ -315,7 +282,7 @@ private fun MainDashboard(
                     Text("WELCOME TO AKAR MOE", color = Blue,
                         style = MaterialTheme.typography.titleLarge,
                         fontWeight = FontWeight.Bold)
-                    RouterCard(gateway, routerStatus, onDetect, onOpenRouter)
+                    RouterCard(routerStatus, onDetect)
                     Text("SYSTEM FEATURES", color = Blue, fontWeight = FontWeight.Bold)
                     FeatureCard("Device Manager", "Connected device list — API လိုအပ်", Icons.Default.Devices)
                     FeatureCard("Online / Offline", "Router status — API လိုအပ်", Icons.Default.Wifi)
@@ -324,8 +291,8 @@ private fun MainDashboard(
                 }
                 1 -> {
                     PageTitle("DISCOVER", "Ruijie Router ရှာဖွေရန်")
-                    RouterCard(gateway, routerStatus, onDetect, onOpenRouter)
-                    FeatureCard("Auto Detect", "လက်ရှိ Wi-Fi Gateway ကို ရှာဖွေမယ်", Icons.Default.Search)
+                    RouterCard(routerStatus, onDetect)
+                    FeatureCard("Cloud Auto Detect", "Ruijie Cloud Account ထဲက Router များကို ရှာဖွေရန် — API လိုအပ်", Icons.Default.Search)
                 }
                 2 -> {
                     PageTitle("PRODUCT", "Ruijie Router Families")
@@ -338,7 +305,7 @@ private fun MainDashboard(
                     PageTitle("TOOLKIT", "Network Tools")
                     FeatureCard("Speed Test", "Internet speed test", Icons.Default.Speed)
                     FeatureCard("Wi-Fi QR", "Wi-Fi QR Code", Icons.Default.QrCode2)
-                    FeatureCard("Network Info", "Gateway နှင့် Wi-Fi အချက်အလက်", Icons.Default.Info)
+                    FeatureCard("Cloud Router Info", "Ruijie Cloud Router အချက်အလက် — API လိုအပ်", Icons.Default.Info)
                 }
                 4 -> {
                     PageTitle("MY ACCOUNT", "ကိုယ်ပိုင် Account")
@@ -379,10 +346,8 @@ private fun MainDashboard(
 
 @Composable
 private fun RouterCard(
-    gateway: String?,
     status: String,
-    onDetect: () -> Unit,
-    onOpen: () -> Unit
+    onDetect: () -> Unit
 ) {
     Card(
         modifier = Modifier.fillMaxWidth(),
@@ -390,21 +355,14 @@ private fun RouterCard(
         shape = RoundedCornerShape(18.dp)
     ) {
         Column(Modifier.padding(16.dp), verticalArrangement = Arrangement.spacedBy(10.dp)) {
-            Text("ROUTER DISCOVERY", color = Blue, fontWeight = FontWeight.Bold)
-            Text(gateway ?: "ROUTER NOT DETECTED", color = WhiteText,
+            Text("RUIJIE CLOUD DISCOVERY", color = Blue, fontWeight = FontWeight.Bold)
+            Text("ROUTER LIST", color = WhiteText,
                 style = MaterialTheme.typography.titleLarge)
             Text(status, color = WhiteText.copy(alpha = 0.7f))
             Button(onClick = onDetect, modifier = Modifier.fillMaxWidth()) {
                 Icon(Icons.Default.Search, null)
                 Spacer(Modifier.width(8.dp))
-                Text("AUTO DETECT ROUTER")
-            }
-            OutlinedButton(
-                onClick = onOpen,
-                enabled = gateway != null,
-                modifier = Modifier.fillMaxWidth()
-            ) {
-                Text("OPEN ROUTER ADMIN")
+                Text("AUTO DETECT ROUTERS")
             }
         }
     }
