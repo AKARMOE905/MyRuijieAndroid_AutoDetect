@@ -29,7 +29,7 @@ fun HackerCodeRain() {
     )
 
     val columns = remember {
-        List(22) {
+        List(16) {
             Random(it * 31).nextInt(0, 10000)
         }
     }
@@ -37,14 +37,14 @@ fun HackerCodeRain() {
     Canvas(Modifier.fillMaxSize()) {
         val paint = android.graphics.Paint().apply {
             color = android.graphics.Color.rgb(0, 210, 120)
-            textSize = 12f
-            alpha = 150
+            textSize = 20f
+            alpha = 220
             typeface = android.graphics.Typeface.MONOSPACE
         }
 
         val bluePaint = android.graphics.Paint(paint).apply {
             color = android.graphics.Color.rgb(40, 170, 255)
-            alpha = 110
+            alpha = 200
         }
 
         val canvas = drawContext.canvas.nativeCanvas
@@ -55,8 +55,8 @@ fun HackerCodeRain() {
             val offset = (progress.value * size.height * 2 +
                 seed % 500) % (size.height + 250)
 
-            repeat(15) { line ->
-                val y = offset - line * 19f
+            repeat(12) { line ->
+                val y = offset - line * 27f
                 if (y in 0f..size.height) {
                     val char = "01ABCDEF{}[]<>".get(
                         (seed + line * 7 + index) % 14
